@@ -1,4 +1,5 @@
 const Item = require('../models/Item');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 
 // Get all items with search, filter, and sorting
@@ -65,6 +66,18 @@ exports.getItemById = async (req, res) => {
 // Create new item
 exports.createItem = async (req, res) => {
   try {
+    if (!req.body.userId || !mongoose.Types.ObjectId.isValid(req.body.userId)) {
+      let defaultUser = await User.findOne();
+      if (!defaultUser) {
+        defaultUser = await User.create({
+          name: 'Store Manager',
+          email: 'manager@store.com',
+          role: 'Store Manager',
+          organization: 'Apex Retail & Health',
+        });
+      }
+      req.body.userId = defaultUser._id;
+    }
     const item = await Item.create(req.body);
     res.status(201).json({ success: true, data: item });
   } catch (error) {

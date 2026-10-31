@@ -50,7 +50,7 @@ export default function InventoryTable({
     }
     if (item.quantity < 5) {
       return (
-        <span className="badge badge-warning">
+        <span className="badge badge-low-stock">
           Low Stock ({item.quantity})
         </span>
       );
@@ -73,14 +73,14 @@ export default function InventoryTable({
             id="input-inventory-search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search items by name (e.g., Amoxicillin, Milk, Yogurt)..."
+            placeholder="Search products by name (e.g. Milk, Paracetamol, Apples)..."
             className="input-field search-input"
           />
           {searchQuery && (
             <button
               onClick={() => onSearchChange('')}
               className="clear-search-btn"
-              title="Clear search"
+              title="Clear search query"
             >
               ✕
             </button>
@@ -96,11 +96,11 @@ export default function InventoryTable({
               onChange={(e) => onStatusChange(e.target.value)}
               className="input-field select-filter"
             >
-              <option value="all">All Health Statuses</option>
+              <option value="all">All Product Statuses</option>
               <option value="expired">Expired Only</option>
-              <option value="expiring_soon">Expiring Soon (≤ 7 Days)</option>
+              <option value="expiring_soon">Expiring Soon (Next 7 Days)</option>
               <option value="low_stock">Low Stock (&lt; 5 Units)</option>
-              <option value="healthy">Healthy / Safe Inventory</option>
+              <option value="healthy">Fresh & In-Stock</option>
             </select>
           </div>
 
@@ -117,16 +117,16 @@ export default function InventoryTable({
             >
               <option value="expiryDate-asc">Expiry Date (Earliest First)</option>
               <option value="expiryDate-desc">Expiry Date (Latest First)</option>
-              <option value="quantity-asc">Quantity (Lowest First)</option>
-              <option value="quantity-desc">Quantity (Highest First)</option>
-              <option value="costPrice-desc">Unit Cost (Highest First)</option>
-              <option value="itemName-asc">Item Name (A to Z)</option>
+              <option value="quantity-asc">Stock Level (Lowest First)</option>
+              <option value="quantity-desc">Stock Level (Highest First)</option>
+              <option value="costPrice-desc">Unit Price (Highest First)</option>
+              <option value="itemName-asc">Product Name (A to Z)</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Category Tabs */}
+      {/* Category Pills */}
       <div className="category-pills-row">
         <button
           onClick={() => onSelectCategory('All')}
@@ -150,12 +150,12 @@ export default function InventoryTable({
         <table className="inventory-table">
           <thead>
             <tr>
-              <th>Item Name & Batch</th>
+              <th>Product Details</th>
               <th>Category</th>
-              <th>Stock Level</th>
+              <th>Current Stock</th>
               <th>Expiration Date</th>
               <th>Location</th>
-              <th>Unit Cost</th>
+              <th>Unit Price</th>
               <th>Status</th>
               <th className="text-right">Actions</th>
             </tr>
@@ -166,8 +166,8 @@ export default function InventoryTable({
                 <td colSpan={8} className="empty-table-cell">
                   <div className="empty-state">
                     <Search size={32} className="text-dim" />
-                    <h4>No inventory items match your query</h4>
-                    <p>Try resetting filters or adding new items.</p>
+                    <h4>No products found matching your filters</h4>
+                    <p>Try clearing your search or adding a new product.</p>
                   </div>
                 </td>
               </tr>
@@ -186,7 +186,9 @@ export default function InventoryTable({
                     <td>
                       <div className="item-name-cell">
                         <span className="item-name">{item.itemName}</span>
-                        <span className="item-batch mono">{item.batchNumber}</span>
+                        {item.batchNumber && (
+                          <span className="item-batch">{item.batchNumber}</span>
+                        )}
                       </div>
                     </td>
 
@@ -218,17 +220,17 @@ export default function InventoryTable({
                       </div>
                     </td>
 
-                    {/* Storage Location */}
+                    {/* Location */}
                     <td>
                       <span className="location-text">
                         <MapPin size={13} className="text-dim" />
-                        {item.storageLocation || 'Warehouse'}
+                        {item.storageLocation || 'Main Shelf'}
                       </span>
                     </td>
 
-                    {/* Cost */}
+                    {/* Price */}
                     <td>
-                      <span className="mono cost-text">
+                      <span className="cost-text">
                         ${(item.costPrice || 0).toFixed(2)}
                       </span>
                     </td>
@@ -242,21 +244,21 @@ export default function InventoryTable({
                         <button
                           onClick={() => onRestock(item._id, 10)}
                           className="action-icon-btn btn-action-restock"
-                          title="Restock +10 units (MongoDB $inc)"
+                          title="Quick restock (+10 units)"
                         >
                           <PlusCircle size={15} />
                         </button>
                         <button
                           onClick={() => onEdit(item)}
                           className="action-icon-btn btn-action-edit"
-                          title="Edit item details"
+                          title="Edit product"
                         >
                           <Edit3 size={15} />
                         </button>
                         <button
                           onClick={() => onDelete(item._id)}
                           className="action-icon-btn btn-action-delete"
-                          title="Delete / Discard item"
+                          title="Remove product"
                         >
                           <Trash2 size={15} />
                         </button>
@@ -272,7 +274,7 @@ export default function InventoryTable({
 
       <div className="table-footer-bar">
         <span className="text-muted text-sm">
-          Showing <strong>{items.length}</strong> items • Indexed B-Tree Sort Active
+          Showing <strong>{items.length}</strong> items in inventory
         </span>
       </div>
     </div>

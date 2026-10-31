@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, RefreshCw, Database, CheckCircle2, Layers } from 'lucide-react';
+import { X, RotateCcw, Package2, Sparkles } from 'lucide-react';
 
 export default function SeedModal({
   isOpen,
@@ -28,8 +28,8 @@ export default function SeedModal({
       <div className="modal-container glass-panel" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-row">
-            <Database size={20} className="text-emerald" />
-            <h3 className="modal-title">Database Seeder & Volume Generator</h3>
+            <Package2 size={20} className="text-emerald" />
+            <h3 className="modal-title">Load Sample Inventory</h3>
           </div>
           <button onClick={onClose} className="modal-close-btn" title="Close modal">
             <X size={18} />
@@ -38,16 +38,16 @@ export default function SeedModal({
 
         <form onSubmit={handleSubmit} className="modal-form">
           <p className="modal-subtitle">
-            Populate MongoDB with realistic perishable goods (pharma, dairy, fresh bakery, produce) spanning expired, critical, and fresh expiry dates.
+            Quickly fill your inventory with realistic perishable products (groceries, dairy, bakery, pharmaceuticals) with realistic expiration dates.
           </p>
 
           <div className="form-group" style={{ marginTop: '16px' }}>
-            <label className="form-label">Batch Size Selection</label>
+            <label className="form-label">Select Sample Size</label>
             <div className="seed-options-grid">
               {[
-                { qty: 50, label: '50 Items', desc: 'Standard Academic Demo' },
-                { qty: 250, label: '250 Items', desc: 'Medium Store Catalog' },
-                { qty: 1000, label: '1,000 Items', desc: 'Stress Test Benchmark' },
+                { qty: 50, label: '50 Products', desc: 'Standard Demo' },
+                { qty: 250, label: '250 Products', desc: 'Medium Catalog' },
+                { qty: 1000, label: '1,000 Products', desc: 'High Volume Test' },
               ].map((opt) => (
                 <div
                   key={opt.qty}
@@ -68,15 +68,8 @@ export default function SeedModal({
                 checked={clearExisting}
                 onChange={(e) => setClearExisting(e.target.checked)}
               />
-              <span>Clear existing items before generating fresh dataset</span>
+              <span>Replace current inventory with this new sample dataset</span>
             </label>
-          </div>
-
-          <div className="academic-tip-box">
-            <Layers size={16} className="text-emerald" />
-            <span>
-              Tip: Inserting 1,000+ items noticeably demonstrates why B-Tree index scanning outperforms sequential collection scans.
-            </span>
           </div>
 
           <div className="modal-footer" style={{ marginTop: '24px' }}>
@@ -84,8 +77,8 @@ export default function SeedModal({
               Cancel
             </button>
             <button type="submit" disabled={loading} className="btn btn-primary">
-              <RefreshCw size={16} className={loading ? 'spin' : ''} />
-              <span>{loading ? 'Populating MongoDB...' : `Generate ${count} Items`}</span>
+              <RotateCcw size={16} className={loading ? 'spin' : ''} />
+              <span>{loading ? 'Loading Products...' : `Generate ${count} Products`}</span>
             </button>
           </div>
         </form>

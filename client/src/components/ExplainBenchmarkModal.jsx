@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, Zap, AlertTriangle, ArrowRight, CheckCircle2, RefreshCw, Code, BookOpen, Layers } from 'lucide-react';
+import { X, Zap, AlertTriangle, RefreshCw, Code, BookOpen, Layers, CheckCircle2 } from 'lucide-react';
 import { api } from '../utils/api';
 
 export default function ExplainBenchmarkModal({
@@ -21,7 +21,7 @@ export default function ExplainBenchmarkModal({
       const res = await api.runExplainBenchmark();
       setBenchmarkData(res.data);
     } catch (err) {
-      setError(err.message || 'Failed to execute explain query');
+      setError(err.message || 'Failed to run speed test');
     } finally {
       setLoading(false);
     }
@@ -30,8 +30,8 @@ export default function ExplainBenchmarkModal({
   const handleSeedStressTest = async (count) => {
     try {
       setSeeding(true);
-      const res = await api.seedData(count, false); // append without clearing
-      onShowToast(`Seeded ${res.count} items! Running fresh benchmark...`, 'success');
+      const res = await api.seedData(count, false);
+      onShowToast(`Added ${res.count} test products! Refreshing benchmark...`, 'success');
       if (onDataChanged) onDataChanged();
       await runBenchmark();
     } catch (err) {
@@ -64,15 +64,15 @@ export default function ExplainBenchmarkModal({
         <div className="modal-header">
           <div className="benchmark-title-wrapper">
             <div className="benchmark-badge-icon">
-              <Sparkles size={20} className="text-academic" />
+              <Zap size={22} className="text-emerald" />
             </div>
             <div>
               <div className="modal-title-row">
-                <h3 className="modal-title">Live EXPLAIN() Query Plan Analyzer</h3>
-                <span className="badge badge-academic-tag">DBMS Performance Proof</span>
+                <h3 className="modal-title">Database Speed & Index Test</h3>
+                <span className="badge badge-healthy">Live Performance</span>
               </div>
               <p className="modal-subtitle">
-                Real-time MongoDB <code>explain("executionStats")</code> comparing B-Tree Index Scan (IXSCAN) vs Full Table Scan (COLLSCAN)
+                Compare search performance with database indexes versus scanning all records
               </p>
             </div>
           </div>
@@ -85,25 +85,25 @@ export default function ExplainBenchmarkModal({
 
         {loading ? (
           <div className="benchmark-loading-state">
-            <RefreshCw size={28} className="spin text-academic" />
-            <p>Executing dual EXPLAIN queries against MongoDB engine...</p>
+            <RefreshCw size={28} className="spin text-emerald" />
+            <p>Running live query speed test against MongoDB engine...</p>
           </div>
         ) : benchmarkData ? (
           <div className="benchmark-content">
-            {/* Query Evaluated Banner */}
+            {/* Top Query Banner */}
             <div className="query-code-banner">
-              <span className="query-code-label">Query Executed:</span>
-              <code className="query-code-text mono">
-                db.items.find({benchmarkData.queryExecuted}).sort({'{ expiryDate: 1 }'})
-              </code>
+              <span className="query-code-label">Filter Tested:</span>
+              <span className="query-code-text">
+                Find all products expiring within the next 14 days
+              </span>
               <button
                 onClick={runBenchmark}
                 disabled={loading}
                 className="btn btn-secondary btn-sm refresh-benchmark-btn"
-                title="Rerun benchmark now"
+                title="Rerun test"
               >
                 <RefreshCw size={13} className={loading ? 'spin' : ''} />
-                <span>Rerun</span>
+                <span>Rerun Test</span>
               </button>
             </div>
 
@@ -114,52 +114,46 @@ export default function ExplainBenchmarkModal({
                 <div className="plan-card-header">
                   <div className="plan-title-group">
                     <Zap size={18} className="text-emerald" />
-                    <h4 className="plan-title">Optimized: B-Tree Index Scan</h4>
+                    <h4 className="plan-title">Optimized Search (With Index)</h4>
                   </div>
-                  <span className="badge badge-healthy">IXSCAN + FETCH</span>
+                  <span className="badge badge-healthy">Fast Index Scan</span>
                 </div>
 
-                <p className="plan-desc">{indexed.description}</p>
+                <p className="plan-desc">
+                  The database uses an index pointer tree to jump directly to expiring products without reading unrelated records.
+                </p>
 
                 <div className="plan-metrics-list">
-                  <div className="metric-row">
-                    <span className="metric-name">Stage Plan:</span>
-                    <strong className="metric-value mono text-emerald">{indexed.stage}</strong>
-                  </div>
-                  <div className="metric-row">
-                    <span className="metric-name">Index Name:</span>
-                    <strong className="metric-value mono text-sm">{indexed.indexUsed}</strong>
-                  </div>
                   <div className="metric-row highlight-row">
-                    <span className="metric-name">Documents Examined:</span>
-                    <strong className="metric-value mono text-lg text-emerald">
-                      {indexed.totalDocsExamined} <span className="text-xs">({indexedScanPercent}% of DB)</span>
+                    <span className="metric-name">Records Checked:</span>
+                    <strong className="metric-value text-lg text-emerald">
+                      {indexed.totalDocsExamined} <span className="text-xs">({indexedScanPercent}% of inventory)</span>
                     </strong>
                   </div>
                   <div className="metric-row">
-                    <span className="metric-name">Index Keys Traversed:</span>
-                    <strong className="metric-value mono">{indexed.totalKeysExamined}</strong>
+                    <span className="metric-name">Matching Products:</span>
+                    <strong className="metric-value">{indexed.nReturned} products</strong>
                   </div>
                   <div className="metric-row">
-                    <span className="metric-name">Documents Returned:</span>
-                    <strong className="metric-value mono">{indexed.nReturned}</strong>
+                    <span className="metric-name">Search Method:</span>
+                    <strong className="metric-value text-emerald">Direct B-Tree Lookup</strong>
                   </div>
                   <div className="metric-row">
-                    <span className="metric-name">Time Complexity:</span>
-                    <strong className="metric-value mono text-emerald">O(log N) B-Tree</strong>
+                    <span className="metric-name">Efficiency:</span>
+                    <strong className="metric-value text-emerald">Instant & Scalable</strong>
                   </div>
                 </div>
 
                 {/* Progress Visual */}
                 <div className="scan-meter-wrapper">
                   <div className="meter-header">
-                    <span>Collection Examined:</span>
-                    <span className="mono">{indexedScanPercent}%</span>
+                    <span>Database Scanned:</span>
+                    <span>{indexedScanPercent}%</span>
                   </div>
                   <div className="meter-track">
                     <div
                       className="meter-fill meter-fill-emerald"
-                      style={{ width: `${Math.max(5, indexedScanPercent)}%` }}
+                      style={{ width: `${Math.max(6, indexedScanPercent)}%` }}
                     ></div>
                   </div>
                 </div>
@@ -170,47 +164,41 @@ export default function ExplainBenchmarkModal({
                 <div className="plan-card-header">
                   <div className="plan-title-group">
                     <AlertTriangle size={18} className="text-rose" />
-                    <h4 className="plan-title">Unoptimized: Full Collection Scan</h4>
+                    <h4 className="plan-title">Unoptimized Search (No Index)</h4>
                   </div>
-                  <span className="badge badge-expired">COLLSCAN</span>
+                  <span className="badge badge-expired">Full Table Scan</span>
                 </div>
 
-                <p className="plan-desc">{unindexed.description}</p>
+                <p className="plan-desc">
+                  The database is forced to open and check every single record from storage one by one.
+                </p>
 
                 <div className="plan-metrics-list">
-                  <div className="metric-row">
-                    <span className="metric-name">Stage Plan:</span>
-                    <strong className="metric-value mono text-rose">{unindexed.stage}</strong>
-                  </div>
-                  <div className="metric-row">
-                    <span className="metric-name">Index Name:</span>
-                    <strong className="metric-value mono text-sm text-dim">None (Forced Table Scan)</strong>
-                  </div>
                   <div className="metric-row highlight-row unindexed-highlight">
-                    <span className="metric-name">Documents Examined:</span>
-                    <strong className="metric-value mono text-lg text-rose">
-                      {unindexed.totalDocsExamined} <span className="text-xs">({unindexedScanPercent}% of DB)</span>
+                    <span className="metric-name">Records Checked:</span>
+                    <strong className="metric-value text-lg text-rose">
+                      {unindexed.totalDocsExamined} <span className="text-xs">(100% of inventory)</span>
                     </strong>
                   </div>
                   <div className="metric-row">
-                    <span className="metric-name">Index Keys Traversed:</span>
-                    <strong className="metric-value mono text-dim">0 (Full Scan)</strong>
+                    <span className="metric-name">Matching Products:</span>
+                    <strong className="metric-value">{unindexed.nReturned} products</strong>
                   </div>
                   <div className="metric-row">
-                    <span className="metric-name">Documents Returned:</span>
-                    <strong className="metric-value mono">{unindexed.nReturned}</strong>
+                    <span className="metric-name">Search Method:</span>
+                    <strong className="metric-value text-rose">Sequential Linear Scan</strong>
                   </div>
                   <div className="metric-row">
-                    <span className="metric-name">Time Complexity:</span>
-                    <strong className="metric-value mono text-rose">O(N) Linear Scan</strong>
+                    <span className="metric-name">Efficiency:</span>
+                    <strong className="metric-value text-rose">Slows down under load</strong>
                   </div>
                 </div>
 
                 {/* Progress Visual */}
                 <div className="scan-meter-wrapper">
                   <div className="meter-header">
-                    <span>Collection Examined:</span>
-                    <span className="mono">100% (All Docs)</span>
+                    <span>Database Scanned:</span>
+                    <span>100% (Every record)</span>
                   </div>
                   <div className="meter-track">
                     <div className="meter-fill meter-fill-rose" style={{ width: '100%' }}></div>
@@ -219,28 +207,30 @@ export default function ExplainBenchmarkModal({
               </div>
             </div>
 
-            {/* Academic Evaluation Summary Box */}
+            {/* Clear Summary Box */}
             <div className="academic-verdict-box">
               <div className="verdict-icon">
-                <BookOpen size={20} className="text-academic" />
+                <CheckCircle2 size={20} className="text-emerald" />
               </div>
               <div className="verdict-text">
                 <div className="verdict-headline">
-                  <strong>Academic Conclusion for Evaluator:</strong>{' '}
+                  <strong>Key Takeaway:</strong>{' '}
                   <span className="text-emerald font-semibold">
-                    {comparison.efficiencyRatio} Query Efficiency Gain ({comparison.docsSaved} documents saved from disk I/O)
+                    The index saved checking {comparison.docsSaved} unnecessary records ({comparison.efficiencyRatio} efficiency gain)
                   </span>
                 </div>
-                <p className="verdict-detail">{comparison.academicConclusion}</p>
+                <p className="verdict-detail">
+                  As your inventory grows to thousands of items, indexed searches remain sub-millisecond fast, while unindexed searches waste memory and disk bandwidth.
+                </p>
               </div>
             </div>
 
-            {/* Stress Test Generator Bar */}
+            {/* Test Volume Bar */}
             <div className="stress-test-bar">
               <div className="stress-test-info">
                 <Layers size={16} className="text-muted" />
                 <span>
-                  Current Collection: <strong>{totalCount} items</strong>. Test scalability under volume:
+                  Current Database Size: <strong>{totalCount} products</strong>. Test with larger volume:
                 </span>
               </div>
               <div className="stress-test-buttons">
@@ -248,29 +238,29 @@ export default function ExplainBenchmarkModal({
                   disabled={seeding}
                   onClick={() => handleSeedStressTest(250)}
                   className="btn btn-secondary btn-sm"
-                  title="Add 250 test items"
+                  title="Add 250 test products"
                 >
-                  + Add 250 Items
+                  + Add 250 Products
                 </button>
                 <button
                   disabled={seeding}
                   onClick={() => handleSeedStressTest(1000)}
                   className="btn btn-secondary btn-sm"
-                  title="Add 1,000 test items to widen COLLSCAN penalty"
+                  title="Add 1,000 test products"
                 >
-                  + Add 1,000 Items
+                  + Add 1,000 Products
                 </button>
               </div>
             </div>
 
-            {/* Toggle Raw JSON */}
+            {/* Collapsible Technical Details for Evaluators */}
             <div className="raw-json-section">
               <button
                 onClick={() => setShowRawJson(!showRawJson)}
                 className="btn btn-secondary btn-sm raw-json-toggle"
               >
                 <Code size={14} />
-                <span>{showRawJson ? 'Hide Raw MongoDB JSON' : 'Inspect Raw MongoDB explain() JSON'}</span>
+                <span>{showRawJson ? 'Hide Technical Details' : 'View Raw Database Execution Stats (For Evaluator)'}</span>
               </button>
 
               {showRawJson && (
@@ -285,7 +275,7 @@ export default function ExplainBenchmarkModal({
         {/* Modal Footer */}
         <div className="modal-footer">
           <button onClick={onClose} className="btn btn-secondary">
-            Close Benchmark
+            Close
           </button>
         </div>
       </div>

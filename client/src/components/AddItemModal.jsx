@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Package, Tag, DollarSign, MapPin, CheckCircle2 } from 'lucide-react';
+import { X, Calendar, Package, Tag, DollarSign, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function AddItemModal({
   isOpen,
@@ -11,46 +11,48 @@ export default function AddItemModal({
 }) {
   const [formData, setFormData] = useState({
     itemName: '',
-    category: 'Dairy & Eggs',
+    category: 'Produce & Fruits',
     quantity: 10,
     unit: 'units',
     expiryDate: '',
     costPrice: 5.0,
-    storageLocation: 'Cold Vault A-1',
+    storageLocation: 'Main Shelf',
     notes: '',
   });
 
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (editItem) {
       setFormData({
         itemName: editItem.itemName || '',
-        category: editItem.category || 'Dairy & Eggs',
-        quantity: editItem.quantity || 1,
+        category: editItem.category || categories[0] || 'Produce & Fruits',
+        quantity: editItem.quantity ?? 1,
         unit: editItem.unit || 'units',
         expiryDate: editItem.expiryDate ? editItem.expiryDate.split('T')[0] : '',
-        costPrice: editItem.costPrice || 0,
-        storageLocation: editItem.storageLocation || 'Cold Vault A-1',
+        costPrice: editItem.costPrice ?? 0,
+        storageLocation: editItem.storageLocation || 'Main Shelf',
         notes: editItem.notes || '',
       });
     } else {
-      // Default to 7 days from now
+      // Default expiry date to 7 days from now
       const defaultDate = new Date();
       defaultDate.setDate(defaultDate.getDate() + 7);
       setFormData({
         itemName: '',
-        category: 'Medicines & Pharma',
-        quantity: 15,
+        category: categories[0] || 'Produce & Fruits',
+        quantity: 10,
         unit: 'units',
         expiryDate: defaultDate.toISOString().split('T')[0],
-        costPrice: 8.5,
-        storageLocation: 'Pharmacy Shelf B-3',
+        costPrice: 4.5,
+        storageLocation: 'Main Shelf',
         notes: '',
       });
     }
     setError('');
-  }, [editItem, isOpen]);
+    setSubmitting(false);
+  }, [editItem, isOpen, categories]);
 
   if (!isOpen) return null;
 
@@ -63,38 +65,55 @@ export default function AddItemModal({
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.itemName.trim()) {
-      setError('Item name is required');
+      setError('Please provide a product name.');
       return;
     }
     if (!formData.expiryDate) {
-      setError('Expiration date is required for perishable tracking');
+      setError('Please select an expiration date.');
       return;
     }
 
-    const payload = {
-      ...formData,
-      userId,
-      quantity: Number(formData.quantity),
-      costPrice: Number(formData.costPrice),
-    };
+    try {
+      setSubmitting(true);
+      setError('');
 
-    onSubmit(payload);
+      const payload = {
+        itemName: formData.itemName.trim(),
+        category: formData.category,
+        quantity: Number(formData.quantity) || 1,
+        unit: formData.unit,
+        expiryDate: new Date(formData.expiryDate).toISOString(),
+        costPrice: Number(formData.costPrice) || 0,
+        storageLocation: formData.storageLocation.trim() || 'Main Shelf',
+        notes: formData.notes.trim(),
+      };
+
+      if (userId) {
+        payload.userId = userId;
+      }
+
+      await onSubmit(payload);
+    } catch (err) {
+      setError(err.message || 'Failed to save product');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-container glass-panel" onClick={(e) => e.stopPropagation()}>
-        {/* Modal Header */}
+        {/* Header */}
         <div className="modal-header">
           <div>
             <h3 className="modal-title">
-              {editItem ? 'Edit Perishable Item' : 'Add New Inventory Item'}
+              {editItem ? 'Edit Product' : 'Add New Product'}
             </h3>
             <p className="modal-subtitle">
-              Schema validated by Mongoose & automatically indexed into B-Tree tables
+              Enter product details and shelf-life to track freshness and stock
             </p>
           </div>
           <button onClick={onClose} className="modal-close-btn" title="Close modal">
@@ -102,13 +121,18 @@ export default function AddItemModal({
           </button>
         </div>
 
-        {error && <div className="modal-error-box">{error}</div>}
+        {error && (
+          <div className="modal-error-box">
+            <AlertCircle size={16} />
+            <span>{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-grid">
-            {/* Item Name */}
+            {/* Product Name */}
             <div className="form-group span-2">
-              <label className="form-label">Item Name *</label>
+              <label className="form-label">Product Name *</label>
               <div className="input-with-icon">
                 <Package size={16} className="input-icon" />
                 <input
@@ -116,8 +140,9 @@ export default function AddItemModal({
                   required
                   value={formData.itemName}
                   onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
-                  placeholder="e.g. Paracetamol 650mg Tabs, Organic Whole Milk..."
+                  placeholder="e.g. Organic Whole Milk 1L, Paracetamol 500mg, Fresh Apples..."
                   className="input-field"
+                  autoFocus
                 />
               </div>
             </div>
@@ -125,22 +150,25 @@ export default function AddItemModal({
             {/* Category */}
             <div className="form-group">
               <label className="form-label">Category *</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="input-field"
-              >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+              <div className="input-with-icon">
+                <Tag size={16} className="input-icon" />
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="input-field"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Quantity & Unit */}
             <div className="form-group">
-              <label className="form-label">Quantity & Unit *</label>
+              <label className="form-label">Stock Quantity & Unit *</label>
               <div className="quantity-inputs-row">
                 <input
                   type="number"
@@ -156,53 +184,53 @@ export default function AddItemModal({
                   className="input-field unit-input"
                 >
                   <option value="units">units</option>
-                  <option value="strips">strips</option>
-                  <option value="boxes">boxes</option>
-                  <option value="bottles">bottles</option>
                   <option value="packs">packs</option>
+                  <option value="bottles">bottles</option>
+                  <option value="boxes">boxes</option>
+                  <option value="strips">strips</option>
                   <option value="kg">kg</option>
                   <option value="liters">liters</option>
                 </select>
               </div>
             </div>
 
-            {/* Expiration Date with quick testing presets */}
+            {/* Expiration Date with quick presets */}
             <div className="form-group span-2">
               <div className="label-with-presets">
                 <label className="form-label">Expiration Date *</label>
                 <div className="quick-presets">
-                  <span className="preset-label">Quick Test Presets:</span>
+                  <span className="preset-label">Quick set:</span>
                   <button
                     type="button"
                     onClick={() => handlePresetDate(-2)}
                     className="preset-btn preset-danger"
-                    title="Set date to 2 days ago"
+                    title="Set to 2 days ago"
                   >
-                    -2d (Expired)
+                    Expired (-2d)
                   </button>
                   <button
                     type="button"
                     onClick={() => handlePresetDate(2)}
                     className="preset-btn preset-warning"
-                    title="Set date to 2 days ahead"
+                    title="Set to 2 days from now"
                   >
-                    +2d (Critical)
+                    Soon (+2d)
                   </button>
                   <button
                     type="button"
-                    onClick={() => handlePresetDate(6)}
+                    onClick={() => handlePresetDate(7)}
                     className="preset-btn preset-alert"
-                    title="Set date to 6 days ahead"
+                    title="Set to 1 week from now"
                   >
-                    +6d (Expiring)
+                    1 Week (+7d)
                   </button>
                   <button
                     type="button"
-                    onClick={() => handlePresetDate(45)}
+                    onClick={() => handlePresetDate(30)}
                     className="preset-btn preset-safe"
-                    title="Set date to 45 days ahead"
+                    title="Set to 1 month from now"
                   >
-                    +45d (Fresh)
+                    1 Month (+30d)
                   </button>
                 </div>
               </div>
@@ -218,9 +246,9 @@ export default function AddItemModal({
               </div>
             </div>
 
-            {/* Unit Cost Price */}
+            {/* Unit Price */}
             <div className="form-group">
-              <label className="form-label">Unit Cost ($)</label>
+              <label className="form-label">Unit Price ($)</label>
               <div className="input-with-icon">
                 <DollarSign size={16} className="input-icon" />
                 <input
@@ -243,7 +271,7 @@ export default function AddItemModal({
                   type="text"
                   value={formData.storageLocation}
                   onChange={(e) => setFormData({ ...formData, storageLocation: e.target.value })}
-                  placeholder="e.g. Cold Vault A-1, Shelf B-3"
+                  placeholder="e.g. Fridge A, Shelf 2, Pantry"
                   className="input-field"
                 />
               </div>
@@ -251,12 +279,12 @@ export default function AddItemModal({
 
             {/* Notes */}
             <div className="form-group span-2">
-              <label className="form-label">Notes / Storage Instructions</label>
+              <label className="form-label">Notes (Optional)</label>
               <input
                 type="text"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Optional batch notes or vendor tracking..."
+                placeholder="Optional storage instructions or vendor details..."
                 className="input-field"
               />
             </div>
@@ -264,12 +292,12 @@ export default function AddItemModal({
 
           {/* Modal Footer */}
           <div className="modal-footer">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
+            <button type="button" onClick={onClose} className="btn btn-secondary" disabled={submitting}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
               <CheckCircle2 size={16} />
-              <span>{editItem ? 'Save Changes' : 'Add to Inventory'}</span>
+              <span>{submitting ? 'Saving...' : editItem ? 'Save Changes' : 'Add Product'}</span>
             </button>
           </div>
         </form>

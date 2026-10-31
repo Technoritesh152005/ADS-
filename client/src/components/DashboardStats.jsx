@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, AlertOctagon, Clock, AlertTriangle, DollarSign, Layers } from 'lucide-react';
+import { Boxes, AlertOctagon, Clock4, TrendingDown, DollarSign } from 'lucide-react';
 
 export default function DashboardStats({ metrics, activeStatusFilter, onSelectStatusFilter }) {
   const kpis = metrics?.kpis || {
@@ -14,49 +14,49 @@ export default function DashboardStats({ metrics, activeStatusFilter, onSelectSt
   const cards = [
     {
       id: 'all',
-      title: 'Total Tracked Items',
+      title: 'Total Products',
       value: kpis.totalItems,
-      subValue: `${kpis.totalStockQuantity} total units across categories`,
-      icon: Package,
+      subValue: `${kpis.totalStockQuantity} total units in stock`,
+      icon: Boxes,
       color: 'blue',
-      badge: 'B-Tree Indexed',
+      badge: 'All Stock',
     },
     {
       id: 'expired',
-      title: 'Expired Items',
+      title: 'Expired Products',
       value: kpis.expiredCount,
-      subValue: 'Requires immediate disposal',
+      subValue: 'Action needed: discard or replace',
       icon: AlertOctagon,
       color: 'red',
       isPulse: kpis.expiredCount > 0,
-      badge: 'Critical Alert',
+      badge: 'Expired',
     },
     {
       id: 'expiring_soon',
-      title: 'Expiring Soon (≤ 7 Days)',
+      title: 'Expiring Soon',
       value: kpis.expiringSoonCount,
-      subValue: 'Needs markdown or priority usage',
-      icon: Clock,
-      color: 'orange',
-      badge: '$match Stage',
+      subValue: 'Expiring within the next 7 days',
+      icon: Clock4,
+      color: 'amber',
+      badge: 'Next 7 Days',
     },
     {
       id: 'low_stock',
-      title: 'Low Stock (< 5 Units)',
+      title: 'Low Stock Alert',
       value: kpis.lowStockCount,
-      subValue: 'Below minimum safety reorder level',
-      icon: AlertTriangle,
-      color: 'yellow',
-      badge: 'Compound Index',
+      subValue: 'Fewer than 5 units remaining',
+      icon: TrendingDown,
+      color: 'orange',
+      badge: 'Reorder Soon',
     },
     {
       id: 'healthy',
-      title: 'Inventory Valuation',
+      title: 'Estimated Stock Value',
       value: `$${(kpis.inventoryValuation || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      subValue: 'Computed via $multiply & $sum',
+      subValue: 'Current total inventory worth',
       icon: DollarSign,
       color: 'emerald',
-      badge: '$facet Pipeline',
+      badge: 'Total Worth',
     },
   ];
 
@@ -64,14 +64,10 @@ export default function DashboardStats({ metrics, activeStatusFilter, onSelectSt
     <section className="dashboard-stats-section">
       <div className="section-header-row">
         <div>
-          <h2 className="section-title">Live Inventory Health</h2>
+          <h2 className="section-title">Inventory Overview</h2>
           <p className="section-subtitle">
-            Aggregation metrics computed directly inside MongoDB via multi-stage <code>$facet</code> pipeline
+            Live stock health, expiration alerts, and inventory valuation at a glance
           </p>
-        </div>
-        <div className="db-concept-badge">
-          <Layers size={14} />
-          <span>Single-Pass $facet Pipeline</span>
         </div>
       </div>
 
@@ -84,10 +80,10 @@ export default function DashboardStats({ metrics, activeStatusFilter, onSelectSt
             <div
               key={card.id}
               onClick={() => onSelectStatusFilter(card.id)}
-              className={`stat-card stat-card-${card.color} ${isActive ? 'active' : ''} ${card.isPulse ? 'pulse-critical' : ''}`}
+              className={`stat-card stat-card-${card.color} ${isActive ? 'active' : ''} ${card.isPulse ? 'card-pulse' : ''}`}
               role="button"
               tabIndex={0}
-              title={`Click to filter by ${card.title}`}
+              title={`Click to filter list by ${card.title}`}
             >
               <div className="stat-card-header">
                 <span className="stat-card-title">{card.title}</span>
@@ -103,7 +99,7 @@ export default function DashboardStats({ metrics, activeStatusFilter, onSelectSt
 
               <div className="stat-card-footer">
                 <span className="stat-subvalue">{card.subValue}</span>
-                {isActive && <span className="stat-active-indicator">● Active Filter</span>}
+                {isActive && <span className="stat-active-indicator">● Filter Active</span>}
               </div>
             </div>
           );

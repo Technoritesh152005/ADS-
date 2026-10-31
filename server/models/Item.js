@@ -5,7 +5,7 @@ const ItemSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Item must belong to a registered user'],
+      default: null,
       index: true,
     },
     itemName: {

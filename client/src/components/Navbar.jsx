@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, Plus, Sparkles, RefreshCw, ShieldCheck, User } from 'lucide-react';
+import { Package2, Plus, Zap, RotateCcw, User, CheckCircle2 } from 'lucide-react';
 
 export default function Navbar({
   user,
@@ -11,52 +11,50 @@ export default function Navbar({
   return (
     <header className="navbar-wrapper">
       <div className="navbar-content">
-        {/* Brand / Title */}
+        {/* Brand */}
         <div className="brand-group">
           <div className="brand-icon">
-            <Database size={22} className="text-emerald" />
+            <Package2 size={24} className="text-emerald" />
           </div>
           <div>
             <div className="brand-title-row">
-              <h1 className="brand-title">ExpiTrack<span className="brand-trademark">™</span></h1>
-              <span className="badge badge-academic-tag">Advanced DBMS</span>
+              <h1 className="brand-title">ExpiTrack</h1>
+              <span className="brand-badge">Freshness Manager</span>
             </div>
             <p className="brand-subtitle">
-              Smart Perishable Inventory & Expiry Pipeline • MongoDB B-Tree Engine
+              Smart inventory and perishable goods tracking system
             </p>
           </div>
         </div>
 
-        {/* Database Status Pill */}
-        <div className="db-status-pill">
+        {/* System Status Pill */}
+        <div className="system-status-pill">
           <span className="status-dot"></span>
-          <span className="mono status-text">
-            MongoDB 127.0.0.1:27017 | <strong className="text-emerald">Active Indexes (4)</strong>
-          </span>
+          <span className="status-text">System Live • Real-time Sync</span>
         </div>
 
         {/* Action Controls */}
         <div className="navbar-actions">
-          {/* Seed Data Button */}
+          {/* Seed Demo Data Button */}
           <button
             id="btn-seed-data"
             onClick={onOpenSeedModal}
             className="btn btn-secondary btn-sm"
-            title="Seed sample data or run high-volume stress test"
+            title="Reset or load sample inventory data"
           >
-            <RefreshCw size={15} />
-            <span>Seed Data</span>
+            <RotateCcw size={15} />
+            <span>Load Demo Data</span>
           </button>
 
-          {/* Academic Benchmark Modal Trigger */}
+          {/* Performance Test Modal Trigger */}
           <button
             id="btn-open-explain-modal"
             onClick={onOpenExplainModal}
-            className="btn btn-academic btn-sm"
-            title="Live EXPLAIN() Query Plan Analyzer comparing IXSCAN vs COLLSCAN"
+            className="btn btn-benchmark btn-sm"
+            title="Run speed test comparing indexed vs full database search"
           >
-            <Sparkles size={15} />
-            <span>EXPLAIN Benchmark</span>
+            <Zap size={15} />
+            <span>Speed Test</span>
           </button>
 
           {/* Add Item Button */}
@@ -66,12 +64,12 @@ export default function Navbar({
             className="btn btn-primary btn-sm"
           >
             <Plus size={16} />
-            <span>Add Item</span>
+            <span>Add Product</span>
           </button>
 
-          {/* Current User Badge */}
+          {/* User Badge */}
           {user && (
-            <div className="user-profile-badge" title={`Logged in as ${user.name} (${user.role})`}>
+            <div className="user-profile-badge" title={`Signed in as ${user.name}`}>
               <div className="user-avatar">
                 <User size={14} />
               </div>

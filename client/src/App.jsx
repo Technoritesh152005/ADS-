@@ -59,7 +59,7 @@ export default function App() {
           setCurrentUser(res.data[0]);
         }
       } catch (err) {
-        console.error('Failed to initialize user session:', err);
+        console.error('Failed to load user info:', err);
       }
     }
     initUser();
@@ -75,7 +75,7 @@ export default function App() {
       setMetrics(metricsRes.data);
       setAlerts(alertsRes.data || []);
     } catch (err) {
-      console.error('Failed to load DB aggregation metrics:', err);
+      console.error('Failed to load summary metrics:', err);
     }
   }, [currentUser]);
 
@@ -99,13 +99,11 @@ export default function App() {
     }
   }, [currentUser, selectedCategory, searchQuery, statusFilter, sortBy, sortOrder]);
 
-  // Trigger loads when user or filters change
+  // Trigger loads on mount and when filters/user change
   useEffect(() => {
-    if (currentUser) {
-      fetchAnalytics();
-      fetchItems();
-    }
-  }, [currentUser, fetchAnalytics, fetchItems]);
+    fetchAnalytics();
+    fetchItems();
+  }, [fetchAnalytics, fetchItems]);
 
   // Handlers
   const handleOpenAdd = () => {
@@ -124,50 +122,55 @@ export default function App() {
         await api.updateItem(editingItem._id, formData);
         showToast(`Updated "${formData.itemName}" successfully!`, 'success');
       } else {
-        await api.createItem(formData);
+        const payload = {
+          ...formData,
+          userId: currentUser?._id || formData.userId,
+        };
+        await api.createItem(payload);
         showToast(`Added "${formData.itemName}" to inventory!`, 'success');
       }
       setIsAddModalOpen(false);
-      fetchItems();
-      fetchAnalytics();
+      await fetchItems();
+      await fetchAnalytics();
     } catch (err) {
-      showToast(err.message || 'Failed to save item', 'error');
+      showToast(err.message || 'Failed to save product', 'error');
+      throw err;
     }
   };
 
   const handleDeleteItem = async (id) => {
-    if (!window.confirm('Are you sure you want to discard / write off this perishable item?')) {
+    if (!window.confirm('Are you sure you want to remove this product from inventory?')) {
       return;
     }
     try {
       await api.deleteItem(id);
-      showToast('Item successfully removed from database', 'info');
+      showToast('Product removed from inventory', 'info');
       fetchItems();
       fetchAnalytics();
     } catch (err) {
-      showToast(err.message || 'Failed to delete item', 'error');
+      showToast(err.message || 'Failed to remove product', 'error');
     }
   };
 
   const handleQuickRestock = async (id, amount = 10) => {
     try {
       await api.quickRestock(id, amount);
-      showToast(`Restocked +${amount} units via MongoDB $inc operator!`, 'success');
+      showToast(`Restocked +${amount} units!`, 'success');
       fetchItems();
       fetchAnalytics();
     } catch (err) {
-      showToast(err.message || 'Failed to restock item', 'error');
+      showToast(err.message || 'Failed to restock product', 'error');
     }
   };
 
   const handleSeedData = async (count, clearExisting) => {
     try {
       const res = await api.seedData(count, clearExisting);
-      showToast(res.message || `Populated ${res.count} items!`, 'success');
+      showToast(res.message || `Loaded ${res.count} products!`, 'success');
       fetchItems();
       fetchAnalytics();
     } catch (err) {
-      showToast(err.message || 'Failed to seed database', 'error');
+      showToast(err.message || 'Failed to load sample products', 'error');
     }
   };
 
@@ -183,21 +186,21 @@ export default function App() {
       />
 
       <main className="container">
-        {/* MongoDB $facet Metrics Cards */}
+        {/* Clean Dashboard Stats Cards */}
         <DashboardStats
           metrics={metrics}
           activeStatusFilter={statusFilter}
           onSelectStatusFilter={(filterId) => setStatusFilter(filterId)}
         />
 
-        {/* MongoDB $match + $addFields Live Alerts Banner */}
+        {/* Attention Needed Banner */}
         <LiveAlertsBanner
           alerts={alerts}
           onRestock={handleQuickRestock}
           onDelete={handleDeleteItem}
         />
 
-        {/* Main Perishable Inventory Table */}
+        {/* Main Product Inventory Table */}
         <InventoryTable
           items={items}
           categories={CATEGORIES}
@@ -219,7 +222,7 @@ export default function App() {
         />
       </main>
 
-      {/* Add / Edit Item Modal */}
+      {/* Add / Edit Product Modal */}
       <AddItemModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -229,7 +232,7 @@ export default function App() {
         categories={CATEGORIES}
       />
 
-      {/* Academic Query Plan Analyzer (EXPLAIN) Modal */}
+      {/* Performance & Index Test Modal */}
       <ExplainBenchmarkModal
         isOpen={isExplainModalOpen}
         onClose={() => setIsExplainModalOpen(false)}
@@ -240,7 +243,7 @@ export default function App() {
         onShowToast={showToast}
       />
 
-      {/* Volume Seeder Modal */}
+      {/* Sample Data Modal */}
       <SeedModal
         isOpen={isSeedModalOpen}
         onClose={() => setIsSeedModalOpen(false)}

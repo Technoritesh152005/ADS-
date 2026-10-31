@@ -1,12 +1,12 @@
 import React from 'react';
-import { AlertCircle, PlusCircle, Trash2, ShieldAlert, ChevronRight } from 'lucide-react';
+import { AlertCircle, PlusCircle, Trash2, CheckCircle2 } from 'lucide-react';
 
 export default function LiveAlertsBanner({ alerts, onRestock, onDelete }) {
   if (!alerts || alerts.length === 0) {
     return (
       <div className="alerts-empty-banner">
-        <ShieldAlert size={20} className="text-emerald" />
-        <span>All perishable items are fresh and stock levels are optimal! Zero critical alerts detected by aggregation.</span>
+        <CheckCircle2 size={18} className="text-emerald" />
+        <span>All clear! Every product is fresh and stock levels are healthy.</span>
       </div>
     );
   }
@@ -16,11 +16,10 @@ export default function LiveAlertsBanner({ alerts, onRestock, onDelete }) {
       <div className="alerts-header">
         <div className="alerts-title-row">
           <div className="alerts-beacon"></div>
-          <h3 className="alerts-title">Active Database Alerts ({alerts.length})</h3>
-          <span className="badge badge-academic-tag">MongoDB $match + $addFields Pipeline</span>
+          <h3 className="alerts-title">Items Needing Attention ({alerts.length})</h3>
         </div>
         <p className="alerts-subtitle">
-          Real-time query matching <code>expiryDate ≤ (now + 7 days) OR quantity &lt; 5</code> with server-computed date differentials
+          Review products that are expired, nearing their expiration date, or running low on stock.
         </p>
       </div>
 
@@ -34,13 +33,13 @@ export default function LiveAlertsBanner({ alerts, onRestock, onDelete }) {
           let alertLabel = `${item.daysRemaining} days left`;
           if (isExpired) {
             alertClass = 'alert-expired';
-            alertLabel = `EXPIRED (${Math.abs(item.daysRemaining)}d ago)`;
+            alertLabel = `Expired (${Math.abs(item.daysRemaining)}d ago)`;
           } else if (isCritical) {
             alertClass = 'alert-critical';
-            alertLabel = `CRITICAL (${item.daysRemaining}d left)`;
+            alertLabel = `Expires in ${item.daysRemaining}d`;
           } else if (isLowStock) {
             alertClass = 'alert-low';
-            alertLabel = `LOW STOCK (${item.quantity} ${item.unit})`;
+            alertLabel = `Low Stock (${item.quantity} left)`;
           }
 
           return (
@@ -55,22 +54,22 @@ export default function LiveAlertsBanner({ alerts, onRestock, onDelete }) {
               <div className="alert-details">
                 <span>Stock: <strong>{item.quantity} {item.unit}</strong></span>
                 <span>•</span>
-                <span>Loc: {item.storageLocation || 'Warehouse'}</span>
+                <span>{item.storageLocation || 'Main Shelf'}</span>
               </div>
 
               <div className="alert-actions">
                 <button
                   onClick={() => onRestock(item._id, 10)}
                   className="btn btn-sm alert-btn-restock"
-                  title="Quick restock 10 units via MongoDB $inc operator"
+                  title="Quickly add 10 units to stock"
                 >
                   <PlusCircle size={13} />
-                  <span>+10</span>
+                  <span>+10 Stock</span>
                 </button>
                 <button
                   onClick={() => onDelete(item._id)}
                   className="btn btn-sm alert-btn-discard"
-                  title="Remove or discard item"
+                  title="Remove this product"
                 >
                   <Trash2 size={13} />
                 </button>
